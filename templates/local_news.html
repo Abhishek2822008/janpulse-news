@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ 'Local News Filter - State, District & City' if session.get('lang', 'hi') == 'en' else 'स्थानीय समाचार फ़िल्टर - राज्य, ज़िला और शहर' }} - JanPulse
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    
+    <!-- Filter Control Header Card -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+        <div class="max-w-3xl mb-6">
+            <div class="flex items-center space-x-2 text-jpRed text-xs font-bold uppercase tracking-wider mb-2">
+                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                <span>{{ 'Hyper-Local Journalism' if session.get('lang', 'hi') == 'en' else 'स्थानिक पत्रकारिता' }}</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
+                {{ 'Filter News by Your Local Community' if session.get('lang', 'hi') == 'en' else 'अपने क्षेत्र के अनुसार समाचार फ़िल्टर करें' }}
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500">
+                {{ 'Select your State, District, and City to browse localized civic, infrastructure, governance, and development reports.' if session.get('lang', 'hi') == 'en' else 'अपने राज्य, जिले और शहर का चयन करके नागरिक सुविधाओं, बुनियादी ढांचे और विकास से जुड़े समाचार देखें।' }}
+            </p>
+        </div>
+
+        <!-- Filter Form -->
+        <form action="{{ url_for('local_news_view') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <!-- 1. State -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                    {{ '1. State' if session.get('lang', 'hi') == 'en' else '1. राज्य' }}
+                </label>
+                <select name="state" id="local-state-select" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                    <option value="">{{ 'All States' if session.get('lang', 'hi') == 'en' else 'सभी राज्य' }}</option>
+                    {% for st in states %}
+                        <option value="{{ st }}" {{ 'selected' if selected_state == st else '' }}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- 2. District -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                    {{ '2. District' if session.get('lang', 'hi') == 'en' else '2. ज़िला' }}
+                </label>
+                <select name="district" id="local-district-select" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed" {{ 'disabled' if not selected_state else '' }}>
+                    <option value="">{{ 'All Districts' if session.get('lang', 'hi') == 'en' else 'सभी ज़िले' }}</option>
+                    {% for dist in districts %}
+                        <option value="{{ dist }}" {{ 'selected' if selected_district == dist else '' }}>{{ dist }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- 3. City -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                    {{ '3. City / Town' if session.get('lang', 'hi') == 'en' else '3. शहर / क्षेत्र' }}
+                </label>
+                <select name="city" id="local-city-select" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed" {{ 'disabled' if not selected_district else '' }}>
+                    <option value="">{{ 'All Cities' if session.get('lang', 'hi') == 'en' else 'सभी शहर' }}</option>
+                    {% for c in cities %}
+                        <option value="{{ c }}" {{ 'selected' if selected_city == c else '' }}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- 4. Actions -->
+            <div class="flex items-center space-x-2">
+                <button type="submit" class="flex-1 bg-jpRed hover:bg-jpRed-hover text-white text-xs font-bold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center space-x-1.5 shadow">
+                    <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                    <span>{{ 'Apply Filter' if session.get('lang', 'hi') == 'en' else 'फ़िल्टर लागू करें' }}</span>
+                </button>
+                {% if selected_state or selected_district or selected_city %}
+                    <a href="{{ url_for('local_news_view') }}" class="p-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold" title="Reset filter">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- Active Filter Breadcrumb -->
+        {% if selected_state or selected_district or selected_city %}
+        <div class="mt-4 flex items-center flex-wrap gap-2 text-xs">
+            <span class="text-slate-400 font-medium">{{ 'Currently Showing:' if session.get('lang', 'hi') == 'en' else 'वर्तमान में चयनित:' }}</span>
+            {% if selected_state %}
+                <span class="bg-rose-100 text-rose-800 font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                    <span>State: {{ selected_state }}</span>
+                </span>
+            {% endif %}
+            {% if selected_district %}
+                <span class="bg-rose-100 text-rose-800 font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                    <span>District: {{ selected_district }}</span>
+                </span>
+            {% endif %}
+            {% if selected_city %}
+                <span class="bg-rose-100 text-rose-800 font-semibold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+                    <span>City: {{ selected_city }}</span>
+                </span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Filtered Articles Results -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h2 class="text-lg font-bold text-slate-900">
+                {{ 'Local Reports' if session.get('lang', 'hi') == 'en' else 'स्थानीय रिपोर्ट' }}
+                <span class="text-xs text-slate-500 font-normal">({{ articles|length }} {{ 'stories' if session.get('lang', 'hi') == 'en' else 'समाचार' }})</span>
+            </h2>
+        </div>
+
+        {% if articles and articles|length > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in articles %}
+            <article class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 news-card-hover flex flex-col justify-between group">
+                <div>
+                    <!-- Thumbnail with Location Badge -->
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}" class="block relative aspect-[16/10] overflow-hidden bg-slate-100">
+                        <img src="{{ item.image_url }}" alt="{{ item.title_en }}" loading="lazy"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        
+                        <div class="absolute bottom-3 left-3 bg-slate-950/85 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-0.5 rounded flex items-center space-x-1 shadow">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-rose-400"></i>
+                            <span>{{ item.city }}, {{ item.district }}</span>
+                        </div>
+                    </a>
+
+                    <!-- Card Body -->
+                    <div class="p-4">
+                        <a href="{{ url_for('article_detail', slug=item.slug) }}">
+                            <h3 class="font-bold text-slate-900 group-hover:text-jpRed transition-colors line-clamp-2 text-base mb-2 leading-snug">
+                                {{ item.title_en if session.get('lang', 'hi') == 'en' else item.title_hi }}
+                            </h3>
+                        </a>
+                        <p class="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed">
+                            {{ item.excerpt_en if session.get('lang', 'hi') == 'en' else item.excerpt_hi }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Footer Stats -->
+                <div class="px-4 pb-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                    <span>{{ item.published_at.strftime('%d %b, %H:%M') }}</span>
+                    <div class="flex items-center space-x-3">
+                        <button class="btn-like-news flex items-center space-x-1 hover:text-rose-600 transition-colors {{ 'text-rose-600 font-semibold' if item.user_has_liked else '' }}" data-news-id="{{ item.id }}">
+                            <i data-lucide="heart" class="w-3.5 h-3.5 like-icon {{ 'fill-current' if item.user_has_liked else '' }}"></i>
+                            <span class="like-count">{{ item.likes_count }}</span>
+                        </button>
+                        <button class="btn-bookmark-news hover:text-amber-600 transition-colors {{ 'text-amber-600' if item.user_has_bookmarked else '' }}" data-news-id="{{ item.id }}">
+                            <i data-lucide="bookmark" class="w-3.5 h-3.5 bookmark-icon {{ 'fill-current' if item.user_has_bookmarked else '' }}"></i>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl p-12 text-center border border-slate-200">
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400 mb-4">
+                <i data-lucide="map-pin-off" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800 mb-1">
+                {{ 'No published stories found for this specific location' if session.get('lang', 'hi') == 'en' else 'इस स्थान के लिए अभी कोई प्रकाशित समाचार नहीं मिला' }}
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">
+                {{ 'Try widening your search to District or State level to view neighboring reports.' if session.get('lang', 'hi') == 'en' else 'कृपया जिला या राज्य स्तर पर फ़िल्टर का चयन करके देखें।' }}
+            </p>
+            <a href="{{ url_for('local_news_view') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-700">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>{{ 'Reset Location Filter' if session.get('lang', 'hi') == 'en' else 'फ़िल्टर रीसेट करें' }}</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

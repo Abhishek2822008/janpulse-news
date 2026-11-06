@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if session.get('lang', 'hi') == 'en' %}
+        JanPulse - Latest Breaking News, India, World, Politics & Local Updates
+    {% else %}
+        जनपल्स - ताज़ा ब्रेकिंग न्यूज़, भारत, विदेश, राजनीति और स्थानीय समाचार
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="space-y-10">
+
+    <!-- 1. Hero Grid: Featured Lead + Side Top Stories + Trending Sidebar -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left / Center: Lead Story & Secondary Stories (8 cols) -->
+        <div class="lg:col-span-8 space-y-6">
+            {% if lead_story %}
+            <!-- Main Lead Card -->
+            <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 news-card-hover group relative">
+                <a href="{{ url_for('article_detail', slug=lead_story.slug) }}" class="block">
+                    <div class="relative aspect-video w-full overflow-hidden bg-slate-900">
+                        <img src="{{ lead_story.image_url }}" alt="{{ lead_story.title_en }}" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent"></div>
+                        
+                        <!-- Badges on Image -->
+                        <div class="absolute top-4 left-4 flex flex-wrap gap-2">
+                            {% if lead_story.is_breaking %}
+                                <span class="bg-jpRed text-white text-xs font-black uppercase px-2.5 py-1 rounded-md shadow-md flex items-center space-x-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                    <span>{{ 'BREAKING' if session.get('lang', 'hi') == 'en' else 'ब्रेकिंग' }}</span>
+                                </span>
+                            {% endif %}
+                            <span class="bg-slate-900/80 backdrop-blur-sm text-slate-200 text-xs font-semibold px-2.5 py-1 rounded-md">
+                                {{ lead_story.cat_name_en if session.get('lang', 'hi') == 'en' else lead_story.cat_name_hi }}
+                            </span>
+                        </div>
+
+                        <!-- Title and Excerpt inside Hero Overlay -->
+                        <div class="absolute bottom-4 left-4 right-4 text-white">
+                            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold leading-tight mb-2 drop-shadow-md">
+                                {{ lead_story.title_en if session.get('lang', 'hi') == 'en' else lead_story.title_hi }}
+                            </h1>
+                            <p class="text-slate-300 text-xs sm:text-sm line-clamp-2 mb-3 hidden sm:block">
+                                {{ lead_story.excerpt_en if session.get('lang', 'hi') == 'en' else lead_story.excerpt_hi }}
+                            </p>
+                            <div class="flex items-center space-x-4 text-xs text-slate-400">
+                                <span class="flex items-center space-x-1">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                    <span>{{ lead_story.published_at.strftime('%d %b %Y, %I:%M %p') }}</span>
+                                </span>
+                                <span class="flex items-center space-x-1">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                    <span>{{ lead_story.views_count }} {{ 'views' if session.get('lang', 'hi') == 'en' else 'देखा गया' }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Secondary Featured Grid (2 cards) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {% for sec in secondary_stories %}
+                <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 news-card-hover flex flex-col justify-between group">
+                    <a href="{{ url_for('article_detail', slug=sec.slug) }}" class="block">
+                        <div class="relative aspect-video w-full overflow-hidden bg-slate-100">
+                            <img src="{{ sec.image_url }}" alt="{{ sec.title_en }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <span class="absolute top-2.5 left-2.5 bg-jpNavy/85 text-white text-[11px] font-semibold px-2 py-0.5 rounded">
+                                {{ sec.cat_name_en if session.get('lang', 'hi') == 'en' else sec.cat_name_hi }}
+                            </span>
+                        </div>
+                        <div class="p-4">
+                            <h2 class="font-bold text-slate-900 group-hover:text-jpRed transition-colors line-clamp-2 text-base mb-2">
+                                {{ sec.title_en if session.get('lang', 'hi') == 'en' else sec.title_hi }}
+                            </h2>
+                            <p class="text-xs text-slate-500 line-clamp-2">
+                                {{ sec.excerpt_en if session.get('lang', 'hi') == 'en' else sec.excerpt_hi }}
+                            </p>
+                        </div>
+                    </a>
+                    <div class="px-4 pb-3 flex items-center justify-between text-xs text-slate-400 border-t border-slate-100 pt-2.5">
+                        <span>{{ sec.published_at.strftime('%d %b, %H:%M') }}</span>
+                        <div class="flex items-center space-x-3">
+                            <button class="btn-like-news flex items-center space-x-1 hover:text-rose-600 transition-colors" data-news-id="{{ sec.id }}">
+                                <i data-lucide="heart" class="w-3.5 h-3.5 like-icon"></i>
+                                <span class="like-count">{{ sec.likes_count }}</span>
+                            </button>
+                            <button class="btn-bookmark-news hover:text-amber-600 transition-colors" data-news-id="{{ sec.id }}">
+                                <i data-lucide="bookmark" class="w-3.5 h-3.5 bookmark-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right: Trending / Most Read Sidebar (4 cols) -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-jpRed"></span>
+                        <h2 class="font-extrabold text-slate-900 text-base uppercase tracking-wider">
+                            {{ 'Trending Now' if session.get('lang', 'hi') == 'en' else 'ट्रेंडिंग समाचार' }}
+                        </h2>
+                    </div>
+                    <i data-lucide="flame" class="w-4 h-4 text-jpRed"></i>
+                </div>
+
+                <div class="space-y-4">
+                    {% for trend in trending_news %}
+                    <div class="flex items-start space-x-3 group">
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-extrabold text-xs flex items-center justify-center group-hover:bg-jpRed group-hover:text-white transition-colors">
+                            {{ loop.index }}
+                        </span>
+                        <div class="flex-1">
+                            <a href="{{ url_for('article_detail', slug=trend.slug) }}" class="block">
+                                <h3 class="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-jpRed transition-colors line-clamp-2 leading-snug">
+                                    {{ trend.title_en if session.get('lang', 'hi') == 'en' else trend.title_hi }}
+                                </h3>
+                            </a>
+                            <div class="flex items-center space-x-2 text-[11px] text-slate-400 mt-1">
+                                <span class="text-jpRed font-medium">{{ trend.cat_name_en if session.get('lang', 'hi') == 'en' else trend.cat_name_hi }}</span>
+                                <span>•</span>
+                                <span>{{ trend.published_at.strftime('%H:%M') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if not loop.last %}
+                        <div class="border-t border-slate-100"></div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Local News Feature Box Callout -->
+            <div class="bg-gradient-to-br from-jpNavy to-jpNavy-light rounded-2xl p-5 text-white shadow-md">
+                <div class="flex items-center space-x-2 mb-2 text-amber-400">
+                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider">{{ 'Hyper-Local News' if session.get('lang', 'hi') == 'en' else 'स्थानिक कवरेज' }}</span>
+                </div>
+                <h3 class="font-bold text-base leading-snug mb-2">
+                    {{ 'What is happening in your State, District or City?' if session.get('lang', 'hi') == 'en' else 'आपके राज्य, जिले या शहर में क्या हो रहा है?' }}
+                </h3>
+                <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                    {{ 'Filter news by Uttar Pradesh, Maharashtra, Delhi, Bihar, Karnataka, Rajasthan and more.' if session.get('lang', 'hi') == 'en' else 'उत्तर प्रदेश, महाराष्ट्र, दिल्ली, बिहार, कर्नाटक, राजस्थान आदि के समाचार आसानी से खोजें।' }}
+                </p>
+                <a href="{{ url_for('local_news_view') }}" class="inline-flex items-center space-x-2 bg-jpRed hover:bg-jpRed-hover text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow">
+                    <span>{{ 'Explore Local News' if session.get('lang', 'hi') == 'en' else 'स्थानीय समाचार देखें' }}</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- 2. Latest News Stream (Automatic Algorithm: ORDER BY published_at DESC, id DESC) -->
+    <section class="space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-3.5 h-7 bg-jpRed rounded-sm"></div>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    {{ 'Latest Published Stories' if session.get('lang', 'hi') == 'en' else 'ताज़ा प्रकाशित समाचार' }}
+                </h2>
+            </div>
+            <div class="text-xs text-slate-500 font-medium">
+                {{ 'Auto-updated in real-time' if session.get('lang', 'hi') == 'en' else 'रीयल-टाइम में अपडेट' }}
+            </div>
+        </div>
+
+        <!-- News Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in latest_news %}
+            <article class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 news-card-hover flex flex-col justify-between group">
+                <div>
+                    <!-- Thumbnail with category pill -->
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}" class="block relative aspect-[16/10] overflow-hidden bg-slate-100">
+                        <img src="{{ item.image_url }}" alt="{{ item.title_en }}" loading="lazy"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        
+                        <div class="absolute top-3 left-3 flex items-center space-x-1.5">
+                            <span class="bg-jpNavy/90 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-0.5 rounded shadow">
+                                {{ item.cat_name_en if session.get('lang', 'hi') == 'en' else item.cat_name_hi }}
+                            </span>
+                            {% if item.is_breaking %}
+                                <span class="bg-jpRed text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded uppercase">
+                                    {{ 'Live' if session.get('lang', 'hi') == 'en' else 'लाइव' }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if item.location_name %}
+                            <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-sm text-slate-200 text-[10px] font-medium px-2 py-0.5 rounded flex items-center space-x-1">
+                                <i data-lucide="map-pin" class="w-3 h-3 text-rose-400"></i>
+                                <span>{{ item.location_name }}</span>
+                            </div>
+                        {% endif %}
+                    </a>
+
+                    <!-- Card Body -->
+                    <div class="p-4">
+                        <a href="{{ url_for('article_detail', slug=item.slug) }}">
+                            <h3 class="font-bold text-slate-900 group-hover:text-jpRed transition-colors line-clamp-2 text-base mb-2 leading-snug">
+                                {{ item.title_en if session.get('lang', 'hi') == 'en' else item.title_hi }}
+                            </h3>
+                        </a>
+                        <p class="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed">
+                            {{ item.excerpt_en if session.get('lang', 'hi') == 'en' else item.excerpt_hi }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card Footer Stats & Actions -->
+                <div class="px-4 pb-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center space-x-1">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <span>{{ item.published_at.strftime('%d %b, %H:%M') }}</span>
+                    </span>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button class="btn-like-news flex items-center space-x-1 hover:text-rose-600 transition-colors {{ 'text-rose-600 font-semibold' if item.user_has_liked else '' }}" data-news-id="{{ item.id }}">
+                            <i data-lucide="heart" class="w-3.5 h-3.5 like-icon {{ 'fill-current' if item.user_has_liked else '' }}"></i>
+                            <span class="like-count">{{ item.likes_count }}</span>
+                        </button>
+
+                        <button class="btn-bookmark-news hover:text-amber-600 transition-colors {{ 'text-amber-600' if item.user_has_bookmarked else '' }}" data-news-id="{{ item.id }}" title="Save article">
+                            <i data-lucide="bookmark" class="w-3.5 h-3.5 bookmark-icon {{ 'fill-current' if item.user_has_bookmarked else '' }}"></i>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 3. Categorized Spotlight Sections (India & Technology) -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+        
+        <!-- India Spotlight -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-5 bg-rose-600 rounded-sm"></span>
+                    <h3 class="text-lg font-bold text-slate-900">
+                        {{ 'India News' if session.get('lang', 'hi') == 'en' else 'भारत समाचार' }}
+                    </h3>
+                </div>
+                <a href="{{ url_for('category_view', slug='india') }}" class="text-xs text-jpRed font-semibold hover:underline flex items-center space-x-1">
+                    <span>{{ 'View All' if session.get('lang', 'hi') == 'en' else 'सभी देखें' }}</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+
+            <div class="space-y-3">
+                {% for inews in india_spotlight %}
+                <div class="bg-white rounded-lg p-3 border border-slate-200 flex items-center space-x-3 news-card-hover group">
+                    <img src="{{ inews.image_url }}" alt="{{ inews.title_en }}" class="w-20 h-20 rounded-md object-cover flex-shrink-0">
+                    <div class="flex-1">
+                        <a href="{{ url_for('article_detail', slug=inews.slug) }}">
+                            <h4 class="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-jpRed transition-colors line-clamp-2 leading-snug">
+                                {{ inews.title_en if session.get('lang', 'hi') == 'en' else inews.title_hi }}
+                            </h4>
+                        </a>
+                        <div class="flex items-center space-x-2 text-[11px] text-slate-400 mt-1.5">
+                            <span>{{ inews.published_at.strftime('%d %b, %H:%M') }}</span>
+                            <span>•</span>
+                            <span>{{ inews.views_count }} {{ 'views' if session.get('lang', 'hi') == 'en' else 'देखा गया' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tech & Innovation Spotlight -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between border-b-2 border-slate-200 pb-2">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-5 bg-blue-600 rounded-sm"></span>
+                    <h3 class="text-lg font-bold text-slate-900">
+                        {{ 'Technology & Science' if session.get('lang', 'hi') == 'en' else 'तकनीक और विज्ञान' }}
+                    </h3>
+                </div>
+                <a href="{{ url_for('category_view', slug='technology') }}" class="text-xs text-blue-600 font-semibold hover:underline flex items-center space-x-1">
+                    <span>{{ 'View All' if session.get('lang', 'hi') == 'en' else 'सभी देखें' }}</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+
+            <div class="space-y-3">
+                {% for tnews in tech_spotlight %}
+                <div class="bg-white rounded-lg p-3 border border-slate-200 flex items-center space-x-3 news-card-hover group">
+                    <img src="{{ tnews.image_url }}" alt="{{ tnews.title_en }}" class="w-20 h-20 rounded-md object-cover flex-shrink-0">
+                    <div class="flex-1">
+                        <a href="{{ url_for('article_detail', slug=tnews.slug) }}">
+                            <h4 class="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-jpRed transition-colors line-clamp-2 leading-snug">
+                                {{ tnews.title_en if session.get('lang', 'hi') == 'en' else tnews.title_hi }}
+                            </h4>
+                        </a>
+                        <div class="flex items-center space-x-2 text-[11px] text-slate-400 mt-1.5">
+                            <span>{{ tnews.published_at.strftime('%d %b, %H:%M') }}</span>
+                            <span>•</span>
+                            <span>{{ tnews.views_count }} {{ 'views' if session.get('lang', 'hi') == 'en' else 'देखा गया' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </section>
+
+</div>
+{% endblock %}

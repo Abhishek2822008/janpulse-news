@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}JanPulse Newsroom Admin CMS{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        jpNavy: '#0B192C',
+                        jpRed: '#E11D48'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-100 text-slate-800 flex h-screen overflow-hidden">
+
+    <!-- 1. Left Navigation Sidebar -->
+    <aside class="w-64 bg-slate-950 text-slate-300 flex flex-col justify-between border-r border-slate-800 flex-shrink-0">
+        <div>
+            <!-- Newsroom Brand -->
+            <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-jpRed text-white flex items-center justify-center font-bold shadow-md shadow-rose-950">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="font-black text-lg text-white leading-tight">JAN<span class="text-jpRed">PULSE</span></div>
+                        <div class="text-[10px] font-mono uppercase text-slate-400">Newsroom CMS</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1 text-xs font-semibold">
+                <a href="{{ url_for('admin_dashboard') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_dashboard' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                    Content Management
+                </div>
+
+                <a href="{{ url_for('admin_news_list') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_news_list' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="newspaper" class="w-4 h-4"></i>
+                    <span>All News Articles</span>
+                </a>
+
+                <a href="{{ url_for('admin_news_new') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_news_new' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="file-plus" class="w-4 h-4"></i>
+                    <span>Add New Article</span>
+                </a>
+
+                <a href="{{ url_for('admin_categories') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_categories' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="folder-tree" class="w-4 h-4"></i>
+                    <span>Categories (11)</span>
+                </a>
+
+                <a href="{{ url_for('admin_locations') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_locations' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    <span>Local Locations</span>
+                </a>
+
+                <a href="{{ url_for('admin_media') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_media' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <span>Media Library</span>
+                </a>
+
+                <div class="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                    Community & Moderation
+                </div>
+
+                <a href="{{ url_for('admin_comments') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_comments' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="message-square-check" class="w-4 h-4"></i>
+                    <span>Comments Moderation</span>
+                </a>
+
+                <a href="{{ url_for('admin_users') }}" 
+                   class="flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-colors {{ 'bg-jpRed text-white shadow-sm' if request.endpoint == 'admin_users' else 'text-slate-400 hover:text-white hover:bg-slate-900' }}">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>User Accounts</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Admin Profile & Logout -->
+        <div class="p-4 border-t border-slate-800 bg-slate-900/60">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                        {{ current_user.name[0] if current_user else 'A' }}
+                    </div>
+                    <div class="truncate">
+                        <div class="text-xs font-bold text-white truncate">{{ current_user.name if current_user else 'Administrator' }}</div>
+                        <div class="text-[10px] text-rose-400 font-mono">Role: admin</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('auth_logout') }}" class="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-slate-800" title="Sign Out">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 2. Main Content Wrapper -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        
+        <!-- Top Navigation Bar -->
+        <header class="bg-white border-b border-slate-200 h-14 px-6 flex items-center justify-between flex-shrink-0 shadow-sm">
+            <div class="flex items-center space-x-3">
+                <h1 class="text-sm font-bold text-slate-800">
+                    {% block page_title %}Newsroom Administration{% endblock %}
+                </h1>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('index') }}" target="_blank" 
+                   class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    <span>View Public Website</span>
+                </a>
+                <a href="{{ url_for('admin_news_new') }}" 
+                   class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-jpRed hover:bg-jpRed-hover text-white text-xs font-bold transition-colors shadow">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Publish News</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        <div class="px-6 pt-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="p-3 mb-2 rounded-lg text-xs font-semibold flex items-center justify-between shadow-sm {{ 'bg-emerald-100 text-emerald-800 border border-emerald-200' if category == 'success' else ('bg-rose-100 text-rose-800 border border-rose-200' if category in ['danger', 'error'] else 'bg-amber-100 text-amber-800 border border-amber-200') }}">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' }}" class="w-4 h-4"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-slate-800">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Scrollable Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

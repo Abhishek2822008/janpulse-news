@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ 'Create Account' if session.get('lang', 'hi') == 'en' else 'नया खाता बनाएं' }} - JanPulse
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-8">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 rounded-xl bg-jpNavy text-white flex items-center justify-center mx-auto mb-3 shadow">
+                <i data-lucide="user-plus" class="w-6 h-6 text-rose-400"></i>
+            </div>
+            <h1 class="text-2xl font-black text-slate-900">
+                {{ 'Join JanPulse' if session.get('lang', 'hi') == 'en' else 'जनपल्स से जुड़ें' }}
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">
+                {{ 'Create your free reader account in under a minute' if session.get('lang', 'hi') == 'en' else 'एक मिनट में अपना निःशुल्क पाठक खाता बनाएं' }}
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form action="{{ url_for('auth_register', next=request.args.get('next')) }}" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    {{ 'Full Name' if session.get('lang', 'hi') == 'en' else 'पूरा नाम' }}
+                </label>
+                <div class="relative">
+                    <input type="text" name="name" required minlength="2" maxlength="100" placeholder="Rahul Sharma" 
+                           class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                    <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    {{ 'Email Address' if session.get('lang', 'hi') == 'en' else 'ईमेल पता' }}
+                </label>
+                <div class="relative">
+                    <input type="email" name="email" required placeholder="name@example.com" 
+                           class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                    <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    {{ 'Password' if session.get('lang', 'hi') == 'en' else 'पासवर्ड' }}
+                </label>
+                <div class="relative">
+                    <input type="password" name="password" required minlength="6" placeholder="At least 6 characters" 
+                           class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                    <i data-lucide="key" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    {{ 'Confirm Password' if session.get('lang', 'hi') == 'en' else 'पासवर्ड की पुष्टि करें' }}
+                </label>
+                <div class="relative">
+                    <input type="password" name="confirm_password" required minlength="6" placeholder="Repeat password" 
+                           class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                    <i data-lucide="check" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-jpRed hover:bg-jpRed-hover text-white text-sm font-bold py-2.5 rounded-lg transition-colors shadow flex items-center justify-center space-x-1.5 mt-3">
+                <i data-lucide="user-check" class="w-4 h-4"></i>
+                <span>{{ 'Register Account' if session.get('lang', 'hi') == 'en' else 'खाता बनाएं' }}</span>
+            </button>
+        </form>
+
+        <!-- Login Switch -->
+        <div class="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
+            {{ 'Already have an account?' if session.get('lang', 'hi') == 'en' else 'क्या आपके पास पहले से खाता है?' }}
+            <a href="{{ url_for('auth_login', next=request.args.get('next')) }}" class="font-bold text-jpRed hover:underline ml-1">
+                {{ 'Sign In' if session.get('lang', 'hi') == 'en' else 'लॉगिन करें' }}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

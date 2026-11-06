@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ category.name_en if session.get('lang', 'hi') == 'en' else category.name_hi }} - JanPulse News
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Category Header Banner -->
+    <div class="bg-gradient-to-r from-jpNavy via-jpNavy-light to-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-sm border border-slate-800">
+        <div class="max-w-3xl">
+            <div class="flex items-center space-x-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-2">
+                <i data-lucide="folder" class="w-4 h-4"></i>
+                <span>{{ 'Category Stream' if session.get('lang', 'hi') == 'en' else 'श्रेणी समाचार' }}</span>
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-black mb-3">
+                {{ category.name_en if session.get('lang', 'hi') == 'en' else category.name_hi }}
+            </h1>
+            <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                {{ category.description or ('All the latest updates and breaking stories in ' ~ category.name_en) }}
+            </p>
+            <div class="mt-4 flex items-center space-x-4 text-xs text-slate-400">
+                <span>{{ articles|length }} {{ 'Articles Available' if session.get('lang', 'hi') == 'en' else 'समाचार उपलब्ध' }}</span>
+                <span>•</span>
+                <span>{{ 'Updated continuously' if session.get('lang', 'hi') == 'en' else 'निरंतर अपडेटेड' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Articles Grid -->
+    {% if articles and articles|length > 0 %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in articles %}
+        <article class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 news-card-hover flex flex-col justify-between group">
+            <div>
+                <!-- Image -->
+                <a href="{{ url_for('article_detail', slug=item.slug) }}" class="block relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    <img src="{{ item.image_url }}" alt="{{ item.title_en }}" loading="lazy"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    {% if item.is_breaking %}
+                        <span class="absolute top-3 left-3 bg-jpRed text-white text-[10px] font-extrabold px-2 py-0.5 rounded uppercase shadow">
+                            {{ 'Breaking' if session.get('lang', 'hi') == 'en' else 'ब्रेकिंग' }}
+                        </span>
+                    {% endif %}
+                </a>
+
+                <!-- Content -->
+                <div class="p-4">
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}">
+                        <h2 class="font-bold text-slate-900 group-hover:text-jpRed transition-colors line-clamp-2 text-base mb-2 leading-snug">
+                            {{ item.title_en if session.get('lang', 'hi') == 'en' else item.title_hi }}
+                        </h2>
+                    </a>
+                    <p class="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed">
+                        {{ item.excerpt_en if session.get('lang', 'hi') == 'en' else item.excerpt_hi }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Stats & Actions -->
+            <div class="px-4 pb-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <span class="flex items-center space-x-1">
+                    <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                    <span>{{ item.published_at.strftime('%d %b, %H:%M') }}</span>
+                </span>
+                
+                <div class="flex items-center space-x-3">
+                    <button class="btn-like-news flex items-center space-x-1 hover:text-rose-600 transition-colors {{ 'text-rose-600 font-semibold' if item.user_has_liked else '' }}" data-news-id="{{ item.id }}">
+                        <i data-lucide="heart" class="w-3.5 h-3.5 like-icon {{ 'fill-current' if item.user_has_liked else '' }}"></i>
+                        <span class="like-count">{{ item.likes_count }}</span>
+                    </button>
+
+                    <button class="btn-bookmark-news hover:text-amber-600 transition-colors {{ 'text-amber-600' if item.user_has_bookmarked else '' }}" data-news-id="{{ item.id }}" title="Bookmark">
+                        <i data-lucide="bookmark" class="w-3.5 h-3.5 bookmark-icon {{ 'fill-current' if item.user_has_bookmarked else '' }}"></i>
+                    </button>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl p-12 text-center border border-slate-200">
+        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400 mb-4">
+            <i data-lucide="newspaper" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-1">
+            {{ 'No articles published in this category yet' if session.get('lang', 'hi') == 'en' else 'इस श्रेणी में अभी कोई समाचार उपलब्ध नहीं है' }}
+        </h3>
+        <p class="text-sm text-slate-500 mb-6">
+            {{ 'Check back shortly for newly published dispatches.' if session.get('lang', 'hi') == 'en' else 'कृपया कुछ समय बाद पुनः देखें।' }}
+        </p>
+        <a href="{{ url_for('index') }}" class="inline-flex items-center space-x-2 px-4 py-2 bg-jpRed text-white text-xs font-semibold rounded-lg hover:bg-jpRed-hover">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>{{ 'Back to Home' if session.get('lang', 'hi') == 'en' else 'मुख्य पृष्ठ पर वापस जाएं' }}</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

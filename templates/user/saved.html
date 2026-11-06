@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ 'Saved Articles' if session.get('lang', 'hi') == 'en' else 'सहेजे गए समाचार' }} - JanPulse
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-2 text-amber-600 text-xs font-bold uppercase tracking-wider mb-1">
+                <i data-lucide="bookmark" class="w-4 h-4 fill-current"></i>
+                <span>{{ 'Personal Reading List' if session.get('lang', 'hi') == 'en' else 'व्यक्तिगत वाचन सूची' }}</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900">
+                {{ 'Saved News Stories' if session.get('lang', 'hi') == 'en' else 'आपके सहेजे गए समाचार' }}
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                {{ 'Articles you bookmarked for later reading and reference.' if session.get('lang', 'hi') == 'en' else 'वे समाचार जिन्हें आपने बाद में पढ़ने के लिए सुरक्षित रखा है।' }}
+            </p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold">
+                {{ saved_articles|length }} {{ 'Saved Items' if session.get('lang', 'hi') == 'en' else 'सहेजे गए लेख' }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Articles List / Grid -->
+    {% if saved_articles and saved_articles|length > 0 %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in saved_articles %}
+        <article id="saved-card-{{ item.id }}" class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 news-card-hover flex flex-col justify-between group transition-all duration-300">
+            <div>
+                <a href="{{ url_for('article_detail', slug=item.slug) }}" class="block relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    <img src="{{ item.image_url }}" alt="{{ item.title_en }}" loading="lazy"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    <span class="absolute top-2.5 left-2.5 bg-jpNavy/85 text-white text-[11px] font-semibold px-2 py-0.5 rounded">
+                        {{ item.cat_name_en if session.get('lang', 'hi') == 'en' else item.cat_name_hi }}
+                    </span>
+                </a>
+                <div class="p-4">
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}">
+                        <h2 class="font-bold text-slate-900 group-hover:text-jpRed transition-colors line-clamp-2 text-base mb-2 leading-snug">
+                            {{ item.title_en if session.get('lang', 'hi') == 'en' else item.title_hi }}
+                        </h2>
+                    </a>
+                    <p class="text-xs text-slate-600 line-clamp-2 mb-3 leading-relaxed">
+                        {{ item.excerpt_en if session.get('lang', 'hi') == 'en' else item.excerpt_hi }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="px-4 pb-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <span>{{ item.published_at.strftime('%d %b %Y') }}</span>
+                <div class="flex items-center space-x-2">
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-semibold text-xs">
+                        {{ 'Read' if session.get('lang', 'hi') == 'en' else 'पढ़ें' }}
+                    </a>
+                    <button class="btn-bookmark-news p-1.5 rounded text-amber-600 hover:bg-rose-50 hover:text-rose-600 transition-colors" data-news-id="{{ item.id }}" title="Remove Bookmark">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl p-12 text-center border border-slate-200">
+        <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="bookmark" class="w-8 h-8"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-1">
+            {{ 'No saved articles yet' if session.get('lang', 'hi') == 'en' else 'अभी कोई सहेजा गया समाचार नहीं है' }}
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mb-6">
+            {{ 'Click the bookmark icon on any news story to store it here for quick access anytime.' if session.get('lang', 'hi') == 'en' else 'किसी भी समाचार पर बुकमार्क आइकन पर क्लिक करके उसे यहाँ सुरक्षित रखें।' }}
+        </p>
+        <a href="{{ url_for('index') }}" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-jpRed text-white text-xs font-bold rounded-lg hover:bg-jpRed-hover shadow transition-colors">
+            <i data-lucide="compass" class="w-4 h-4"></i>
+            <span>{{ 'Explore Latest News' if session.get('lang', 'hi') == 'en' else 'ताज़ा समाचार देखें' }}</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ 'My Profile' if session.get('lang', 'hi') == 'en' else 'मेरी प्रोफाइल' }} - JanPulse
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Profile Banner -->
+    <div class="bg-gradient-to-r from-jpNavy to-jpNavy-light rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <div class="w-20 h-20 rounded-full bg-jpRed text-white text-3xl font-black flex items-center justify-center shadow-lg border-2 border-white/20">
+            {{ user.name[0] }}
+        </div>
+        <div class="flex-1 text-center sm:text-left space-y-1">
+            <h1 class="text-2xl font-black">{{ user.name }}</h1>
+            <p class="text-xs text-slate-300">{{ user.email }}</p>
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+                <span class="bg-white/10 text-slate-200 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                    {{ 'Reader Member' if session.get('lang', 'hi') == 'en' else 'पाठक सदस्य' }}
+                </span>
+                <span class="text-slate-400 text-xs">
+                    {{ 'Joined' if session.get('lang', 'hi') == 'en' else 'सदस्य बने' }}: {{ user.created_at.strftime('%B %Y') }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engagement Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="bookmark" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-black text-slate-900">{{ stats.bookmarks_count }}</div>
+                <div class="text-xs text-slate-500 font-medium">{{ 'Saved Articles' if session.get('lang', 'hi') == 'en' else 'सहेजे गए लेख' }}</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="heart" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-black text-slate-900">{{ stats.likes_count }}</div>
+                <div class="text-xs text-slate-500 font-medium">{{ 'Liked Articles' if session.get('lang', 'hi') == 'en' else 'पसंद किए लेख' }}</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="message-square" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-black text-slate-900">{{ stats.comments_count }}</div>
+                <div class="text-xs text-slate-500 font-medium">{{ 'Comments Posted' if session.get('lang', 'hi') == 'en' else 'कुल टिप्पणियां' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Forms Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- 1. Update Profile Info -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
+                <i data-lucide="user-pen" class="w-5 h-5 text-slate-600"></i>
+                <span>{{ 'Personal Details' if session.get('lang', 'hi') == 'en' else 'व्यक्तिगत विवरण' }}</span>
+            </h2>
+
+            <form action="{{ url_for('user_update_profile') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        {{ 'Display Name' if session.get('lang', 'hi') == 'en' else 'नाम' }}
+                    </label>
+                    <input type="text" name="name" value="{{ user.name }}" required minlength="2" maxlength="100" 
+                           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        {{ 'Email Address' if session.get('lang', 'hi') == 'en' else 'ईमेल पता' }}
+                    </label>
+                    <input type="email" value="{{ user.email }}" disabled 
+                           class="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 text-sm cursor-not-allowed">
+                    <p class="text-[11px] text-slate-400 mt-1">Email address cannot be changed.</p>
+                </div>
+
+                <button type="submit" class="bg-jpNavy hover:bg-jpNavy-light text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow">
+                    {{ 'Save Changes' if session.get('lang', 'hi') == 'en' else 'परिवर्तन सहेजें' }}
+                </button>
+            </form>
+        </div>
+
+        <!-- 2. Update Password -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
+                <i data-lucide="shield-check" class="w-5 h-5 text-slate-600"></i>
+                <span>{{ 'Security & Password' if session.get('lang', 'hi') == 'en' else 'सुरक्षा और पासवर्ड' }}</span>
+            </h2>
+
+            <form action="{{ url_for('user_update_password') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        {{ 'Current Password' if session.get('lang', 'hi') == 'en' else 'वर्तमान पासवर्ड' }}
+                    </label>
+                    <input type="password" name="current_password" required placeholder="••••••••" 
+                           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        {{ 'New Password' if session.get('lang', 'hi') == 'en' else 'नया पासवर्ड' }}
+                    </label>
+                    <input type="password" name="new_password" required minlength="6" placeholder="Min 6 characters" 
+                           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        {{ 'Confirm New Password' if session.get('lang', 'hi') == 'en' else 'नए पासवर्ड की पुष्टि करें' }}
+                    </label>
+                    <input type="password" name="confirm_new_password" required minlength="6" placeholder="Repeat new password" 
+                           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-jpRed">
+                </div>
+
+                <button type="submit" class="bg-jpRed hover:bg-jpRed-hover text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow">
+                    {{ 'Update Password' if session.get('lang', 'hi') == 'en' else 'पासवर्ड अपडेट करें' }}
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

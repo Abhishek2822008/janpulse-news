@@ -1,0 +1,152 @@
+{% extends 'admin/layout.html' %}
+
+{% block page_title %}News Articles Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Bar with Search & Filters -->
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h2 class="text-lg font-bold text-slate-900">All Published & Draft News</h2>
+            <p class="text-xs text-slate-500">Manage dispatches, switch draft/published status, and update bilingual copy.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <form action="{{ url_for('admin_news_list') }}" method="GET" class="flex items-center space-x-2">
+                <input type="text" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search articles..." 
+                       class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-jpRed">
+                
+                <select name="status" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-jpRed bg-white">
+                    <option value="">All Statuses</option>
+                    <option value="published" {{ 'selected' if request.args.get('status') == 'published' else '' }}>Published</option>
+                    <option value="draft" {{ 'selected' if request.args.get('status') == 'draft' else '' }}>Draft</option>
+                </select>
+
+                <select name="category" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-jpRed bg-white">
+                    <option value="">All Categories</option>
+                    {% for c in categories %}
+                        <option value="{{ c.id }}" {{ 'selected' if request.args.get('category')|int == c.id else '' }}>{{ c.name_en }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold">
+                    Filter
+                </button>
+            </form>
+
+            <a href="{{ url_for('admin_news_new') }}" class="px-4 py-2 bg-jpRed hover:bg-jpRed-hover text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 shadow">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Add Article</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-mono tracking-wider border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Media</th>
+                        <th class="py-3 px-4">Headline (EN / HI)</th>
+                        <th class="py-3 px-4">Category</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Breaking</th>
+                        <th class="py-3 px-4">Published</th>
+                        <th class="py-3 px-4">Metrics</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for art in articles %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4">
+                            <img src="{{ art.image_url }}" alt="" class="w-12 h-10 object-cover rounded shadow-sm bg-slate-200">
+                        </td>
+                        <td class="py-3 px-4 max-w-xs sm:max-w-md">
+                            <a href="{{ url_for('admin_news_edit', id=art.id) }}" class="font-bold text-slate-900 hover:text-jpRed line-clamp-1">
+                                {{ art.title_en }}
+                            </a>
+                            <div class="text-[11px] text-slate-400 line-clamp-1">{{ art.title_hi }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                                {{ art.cat_name_en }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if art.status == 'published' %}
+                                <span class="bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                    <span>Published</span>
+                                </span>
+                            {% elif art.status == 'draft' %}
+                                <span class="bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                    <span>Draft</span>
+                                </span>
+                            {% else %}
+                                <span class="bg-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded-full">
+                                    {{ art.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if art.is_breaking %}
+                                <span class="bg-rose-100 text-rose-700 font-black px-2 py-0.5 rounded text-[10px] uppercase">
+                                    Yes
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-slate-500">
+                            {{ art.published_at.strftime('%d %b %Y, %H:%M') if art.published_at else 'Unpublished' }}
+                        </td>
+                        <td class="py-3 px-4 text-slate-600 font-mono">
+                            <div>{{ art.views_count }} views</div>
+                            <div class="text-[10px] text-slate-400">{{ art.likes_count }} likes</div>
+                        </td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            <!-- Toggle Publish / Unpublish -->
+                            <form action="{{ url_for('admin_news_toggle_status', id=art.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100" title="{{ 'Unpublish' if art.status == 'published' else 'Publish' }}">
+                                    <i data-lucide="{{ 'eye-off' if art.status == 'published' else 'eye' }}" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+
+                            <!-- Edit -->
+                            <a href="{{ url_for('admin_news_edit', id=art.id) }}" class="p-1 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 inline-block" title="Edit Article">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+
+                            <!-- Preview / Public link -->
+                            <a href="{{ url_for('admin_news_preview', id=art.id) }}" target="_blank" class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 inline-block" title="Preview Article">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+
+                            <!-- Delete -->
+                            <form action="{{ url_for('admin_news_delete', id=art.id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete this news story?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="p-1 rounded text-rose-600 hover:text-rose-800 hover:bg-rose-50" title="Delete Article">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-slate-400">
+                            No articles found matching criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

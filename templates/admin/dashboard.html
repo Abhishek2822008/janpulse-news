@@ -1,0 +1,176 @@
+{% extends 'admin/layout.html' %}
+
+{% block page_title %}Dashboard & Editorial Overview{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- 1. Stats Counter Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Published -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Published Articles</div>
+                <div class="text-3xl font-black text-slate-900 mt-1">{{ stats.published_count }}</div>
+                <div class="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center space-x-1">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                    <span>Live on website</span>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="newspaper" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <!-- Drafts -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Draft Articles</div>
+                <div class="text-3xl font-black text-slate-900 mt-1">{{ stats.drafts_count }}</div>
+                <div class="text-[11px] text-amber-600 font-semibold mt-1 flex items-center space-x-1">
+                    <i data-lucide="file-clock" class="w-3.5 h-3.5"></i>
+                    <span>Hidden from public</span>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i data-lucide="file-edit" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <!-- Registered Readers -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Readers</div>
+                <div class="text-3xl font-black text-slate-900 mt-1">{{ stats.users_count }}</div>
+                <div class="text-[11px] text-blue-600 font-semibold mt-1 flex items-center space-x-1">
+                    <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                    <span>Registered users</span>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <!-- Total Comments -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Public Comments</div>
+                <div class="text-3xl font-black text-slate-900 mt-1">{{ stats.comments_count }}</div>
+                <div class="text-[11px] text-purple-600 font-semibold mt-1 flex items-center space-x-1">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                    <span>Reader feedback</span>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <i data-lucide="messages-square" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Recent Articles Management Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-900">Recent Dispatches & Articles</h2>
+                <p class="text-xs text-slate-500">Overview of recent editorial submissions, publish statuses, and readership metrics.</p>
+            </div>
+            <a href="{{ url_for('admin_news_list') }}" class="text-xs font-bold text-jpRed hover:underline flex items-center space-x-1">
+                <span>View All Articles</span>
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 uppercase font-mono tracking-wider border-b border-slate-200">
+                    <tr>
+                        <th class="py-3 px-4">Title / Headlines</th>
+                        <th class="py-3 px-4">Category</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Breaking</th>
+                        <th class="py-3 px-4">Published Date</th>
+                        <th class="py-3 px-4">Views</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for art in recent_articles %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-3 px-4 max-w-sm">
+                            <div class="font-bold text-slate-900 truncate">{{ art.title_en }}</div>
+                            <div class="text-[11px] text-slate-400 truncate">{{ art.title_hi }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                                {{ art.cat_name_en }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if art.status == 'published' %}
+                                <span class="bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                    <span>Published</span>
+                                </span>
+                            {% elif art.status == 'draft' %}
+                                <span class="bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full inline-flex items-center space-x-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                    <span>Draft</span>
+                                </span>
+                            {% else %}
+                                <span class="bg-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded-full">
+                                    {{ art.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if art.is_breaking %}
+                                <span class="bg-rose-100 text-rose-700 font-black px-2 py-0.5 rounded text-[10px] uppercase">
+                                    Yes
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-slate-500">
+                            {{ art.published_at.strftime('%d %b %Y, %H:%M') if art.published_at else 'Not published' }}
+                        </td>
+                        <td class="py-3 px-4 font-mono font-medium text-slate-700">
+                            {{ art.views_count }}
+                        </td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            <!-- Toggle Publish / Unpublish -->
+                            <form action="{{ url_for('admin_news_toggle_status', id=art.id) }}" method="POST" class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100" title="{{ 'Unpublish' if art.status == 'published' else 'Publish' }}">
+                                    <i data-lucide="{{ 'eye-off' if art.status == 'published' else 'eye' }}" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+
+                            <!-- Edit -->
+                            <a href="{{ url_for('admin_news_edit', id=art.id) }}" class="p-1 rounded text-blue-600 hover:text-blue-800 hover:bg-blue-50 inline-block" title="Edit Article">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+
+                            <!-- Preview / View -->
+                            <a href="{{ url_for('article_detail', slug=art.slug) }}" target="_blank" class="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 inline-block" title="View Public Page">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+
+                            <!-- Delete -->
+                            <form action="{{ url_for('admin_news_delete', id=art.id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete this news story?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="p-1 rounded text-rose-600 hover:text-rose-800 hover:bg-rose-50" title="Delete Article">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

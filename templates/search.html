@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ 'Search News' if session.get('lang', 'hi') == 'en' else 'समाचार खोजें' }} - JanPulse
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    
+    <!-- Search Bar Card -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200">
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 mb-4">
+            {{ 'Search JanPulse News Archive' if session.get('lang', 'hi') == 'en' else 'जनपल्स समाचार अभिलेखागार में खोजें' }}
+        </h1>
+
+        <form action="{{ url_for('search') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+                <input type="text" name="q" value="{{ query }}" required minlength="2"
+                       placeholder="{{ 'Enter keywords, names, places, topics...' if session.get('lang', 'hi') == 'en' else 'शब्द, नाम, स्थान या विषय दर्ज करें...' }}" 
+                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed">
+                <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3 top-3.5"></i>
+            </div>
+
+            <div class="w-full sm:w-56">
+                <select name="category" class="w-full py-3 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-jpRed bg-white">
+                    <option value="">{{ 'All Categories' if session.get('lang', 'hi') == 'en' else 'सभी श्रेणियां' }}</option>
+                    {% for c in nav_categories %}
+                        <option value="{{ c.slug }}" {{ 'selected' if selected_category == c.slug else '' }}>
+                            {{ c.name_en if session.get('lang', 'hi') == 'en' else c.name_hi }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="bg-jpRed hover:bg-jpRed-hover text-white font-bold text-sm px-6 py-3 rounded-xl shadow transition-colors flex items-center justify-center space-x-2">
+                <i data-lucide="search" class="w-4 h-4"></i>
+                <span>{{ 'Search' if session.get('lang', 'hi') == 'en' else 'खोजें' }}</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Search Results -->
+    {% if query %}
+    <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h2 class="text-base font-bold text-slate-900">
+                {{ 'Search Results for' if session.get('lang', 'hi') == 'en' else 'के लिए खोज परिणाम:' }} 
+                <span class="text-jpRed">"{{ query }}"</span>
+            </h2>
+            <span class="text-xs text-slate-500 font-medium">
+                {{ results|length }} {{ 'matches found' if session.get('lang', 'hi') == 'en' else 'परिणाम मिले' }}
+            </span>
+        </div>
+
+        {% if results and results|length > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in results %}
+            <article class="bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 news-card-hover flex flex-col justify-between group">
+                <div>
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}" class="block relative aspect-[16/10] overflow-hidden bg-slate-100">
+                        <img src="{{ item.image_url }}" alt="{{ item.title_en }}" loading="lazy"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <span class="absolute top-2.5 left-2.5 bg-jpNavy/85 text-white text-[11px] font-semibold px-2 py-0.5 rounded">
+                            {{ item.cat_name_en if session.get('lang', 'hi') == 'en' else item.cat_name_hi }}
+                        </span>
+                    </a>
+                    <div class="p-4">
+                        <a href="{{ url_for('article_detail', slug=item.slug) }}">
+                            <h3 class="font-bold text-slate-900 group-hover:text-jpRed transition-colors line-clamp-2 text-base mb-2 leading-snug">
+                                {{ item.title_en if session.get('lang', 'hi') == 'en' else item.title_hi }}
+                            </h3>
+                        </a>
+                        <p class="text-xs text-slate-600 line-clamp-3 mb-3 leading-relaxed">
+                            {{ item.excerpt_en if session.get('lang', 'hi') == 'en' else item.excerpt_hi }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="px-4 pb-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                    <span>{{ item.published_at.strftime('%d %b %Y') }}</span>
+                    <a href="{{ url_for('article_detail', slug=item.slug) }}" class="text-jpRed hover:underline font-semibold flex items-center space-x-1">
+                        <span>{{ 'Read Article' if session.get('lang', 'hi') == 'en' else 'पूरा पढ़ें' }}</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl p-12 text-center border border-slate-200">
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400 mb-4">
+                <i data-lucide="file-question" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800 mb-1">
+                {{ 'No articles matched your query' if session.get('lang', 'hi') == 'en' else 'आपकी खोज से मेल खाता कोई समाचार नहीं मिला' }}
+            </h3>
+            <p class="text-xs text-slate-500">
+                {{ 'Try using different or more general keywords, or check spelling.' if session.get('lang', 'hi') == 'en' else 'कृपया अन्य शब्दों या सामान्य कीवर्ड का उपयोग करके पुनः प्रयास करें।' }}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

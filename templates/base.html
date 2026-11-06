@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'hi') }}" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}JanPulse | जनपल्स - Voice of the People{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        jpNavy: {
+                            DEFAULT: '#0B192C',
+                            dark: '#070F1E',
+                            light: '#1E3E62'
+                        },
+                        jpRed: {
+                            DEFAULT: '#E11D48',
+                            hover: '#BE123C',
+                            dark: '#9F1239'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen {{ 'lang-hi' if session.get('lang', 'hi') == 'hi' else '' }}">
+
+    <!-- 1. Top Utility Header Bar -->
+    <div class="bg-jpNavy-dark text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <!-- Date, Time & Weather -->
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-1">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <span id="live-datetime">Loading date...</span>
+                </div>
+                <div class="hidden sm:flex items-center space-x-1 text-slate-400 border-l border-slate-700 pl-3">
+                    <i data-lucide="cloud-sun" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>New Delhi 27°C • AQI 128</span>
+                </div>
+            </div>
+
+            <!-- Language Switcher & Quick Auth / User Menu -->
+            <div class="flex items-center space-x-4">
+                <!-- Bilingual Switcher Pill -->
+                <div class="inline-flex rounded-full bg-slate-800 p-0.5 border border-slate-700">
+                    <a href="{{ url_for('set_language', lang='hi', next=request.path) }}" 
+                       class="px-2.5 py-0.5 rounded-full font-medium transition-all {{ 'bg-jpRed text-white shadow-sm' if session.get('lang', 'hi') == 'hi' else 'text-slate-400 hover:text-white' }}">
+                        हिन्दी
+                    </a>
+                    <a href="{{ url_for('set_language', lang='en', next=request.path) }}" 
+                       class="px-2.5 py-0.5 rounded-full font-medium transition-all {{ 'bg-jpRed text-white shadow-sm' if session.get('lang', 'hi') == 'en' else 'text-slate-400 hover:text-white' }}">
+                        English
+                    </a>
+                </div>
+
+                <!-- User Session Menu -->
+                {% if current_user %}
+                    <div class="relative group">
+                        <button class="flex items-center space-x-1.5 text-white hover:text-rose-400 font-medium py-1">
+                            <span class="w-5 h-5 rounded-full bg-jpRed flex items-center justify-center text-[10px] uppercase font-bold text-white">
+                                {{ current_user.name[0] }}
+                            </span>
+                            <span class="max-w-[100px] truncate">{{ current_user.name }}</span>
+                            <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                        </button>
+                        <div class="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl py-1 text-slate-700 border border-slate-200 hidden group-hover:block z-50">
+                            <div class="px-3 py-2 border-b border-slate-100 text-[11px] text-slate-400">
+                                {{ current_user.email }}
+                            </div>
+                            <a href="{{ url_for('user_saved') }}" class="flex items-center space-x-2 px-3 py-2 hover:bg-slate-50 text-xs">
+                                <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-500"></i>
+                                <span>{{ 'Saved Articles' if session.get('lang', 'hi') == 'en' else 'सहेजे गए समाचार' }}</span>
+                            </a>
+                            <a href="{{ url_for('user_profile') }}" class="flex items-center space-x-2 px-3 py-2 hover:bg-slate-50 text-xs">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-blue-500"></i>
+                                <span>{{ 'My Profile' if session.get('lang', 'hi') == 'en' else 'मेरी प्रोफाइल' }}</span>
+                            </a>
+                            <div class="border-t border-slate-100 mt-1"></div>
+                            <a href="{{ url_for('auth_logout') }}" class="flex items-center space-x-2 px-3 py-2 hover:bg-rose-50 text-rose-600 text-xs">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                                <span>{{ 'Sign Out' if session.get('lang', 'hi') == 'en' else 'लॉग आउट' }}</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="flex items-center space-x-2">
+                        <a href="{{ url_for('auth_login') }}" class="text-slate-300 hover:text-white font-medium flex items-center space-x-1">
+                            <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
+                            <span>{{ 'Log In' if session.get('lang', 'hi') == 'en' else 'लॉग इन' }}</span>
+                        </a>
+                        <span class="text-slate-600">|</span>
+                        <a href="{{ url_for('auth_register') }}" class="text-rose-400 hover:text-rose-300 font-medium">
+                            {{ 'Register' if session.get('lang', 'hi') == 'en' else 'रजिस्टर' }}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Brand & Search Bar -->
+    <header class="bg-jpNavy border-b border-jpNavy-light/40 py-4 px-4 shadow-md">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <!-- Brand Logo -->
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-jpRed to-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-900/30 group-hover:scale-105 transition-transform">
+                    <i data-lucide="radio" class="w-5 h-5 animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-2xl font-black tracking-tight text-white font-sans">JAN<span class="text-jpRed">PULSE</span></span>
+                        <span class="w-2 h-2 rounded-full bg-jpRed pulse-dot inline-block"></span>
+                    </div>
+                    <p class="text-[11px] font-medium text-slate-400 tracking-wider">
+                        {% if session.get('lang', 'hi') == 'en' %}
+                            Voice of the People | Fearless & Unbiased
+                        {% else %}
+                            जनपल्स | निष्पक्ष, निर्भीक, सटीक जन आवाज़
+                        {% endif %}
+                    </p>
+                </div>
+            </a>
+
+            <!-- Search Bar (Desktop) -->
+            <div class="hidden md:flex flex-1 max-w-md mx-6">
+                <form action="{{ url_for('search') }}" method="GET" class="w-full relative">
+                    <input type="text" name="q" value="{{ request.args.get('q', '') }}" 
+                           placeholder="{{ 'Search news, topics, cities...' if session.get('lang', 'hi') == 'en' else 'समाचार, विषय, शहर या घटना खोजें...' }}" 
+                           class="w-full bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-400 text-sm rounded-full pl-10 pr-24 py-2 focus:outline-none focus:border-jpRed focus:ring-1 focus:ring-jpRed transition-all">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                    <button type="submit" class="absolute right-1.5 top-1.5 px-3 py-1 bg-jpRed hover:bg-jpRed-hover text-white text-xs font-semibold rounded-full transition-colors">
+                        {{ 'Search' if session.get('lang', 'hi') == 'en' else 'खोजें' }}
+                    </button>
+                </form>
+            </div>
+
+            <!-- Mobile Menu Toggle Button -->
+            <div class="flex items-center space-x-2 md:hidden">
+                <a href="{{ url_for('search') }}" class="p-2 text-slate-300 hover:text-white">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </a>
+                <button id="mobile-menu-btn" class="p-2 rounded-lg bg-slate-800 text-slate-200 hover:text-white focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. Navigation Bar (Categories) -->
+    <nav class="bg-jpNavy-dark border-b border-slate-800 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center space-x-1 overflow-x-auto py-2 scrollbar-none text-xs sm:text-sm font-medium">
+                <a href="{{ url_for('index') }}" 
+                   class="px-3 py-1.5 rounded-md whitespace-nowrap transition-colors {{ 'bg-jpRed text-white font-semibold' if request.endpoint == 'index' and not request.args.get('category') else 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
+                    {{ 'Home' if session.get('lang', 'hi') == 'en' else 'मुख्य पृष्ठ' }}
+                </a>
+                
+                {% for cat in nav_categories %}
+                    <a href="{{ url_for('category_view', slug=cat.slug) }}" 
+                       class="px-3 py-1.5 rounded-md whitespace-nowrap transition-colors {{ 'bg-jpRed text-white font-semibold' if current_category_slug == cat.slug else 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
+                        {{ cat.name_en if session.get('lang', 'hi') == 'en' else cat.name_hi }}
+                    </a>
+                {% endfor %}
+
+                <a href="{{ url_for('local_news_view') }}" 
+                   class="px-3 py-1.5 rounded-md whitespace-nowrap transition-colors flex items-center space-x-1 {{ 'bg-rose-950 text-rose-300 border border-rose-800' if request.endpoint == 'local_news_view' else 'text-amber-400 hover:text-amber-300 hover:bg-slate-800' }}">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                    <span>{{ 'Local News Filter' if session.get('lang', 'hi') == 'en' else 'राज्य / ज़िला समाचार' }}</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 4. Breaking News Ticker -->
+    {% if breaking_news_list and breaking_news_list|length > 0 %}
+    <div class="bg-slate-900 border-b border-slate-800 text-xs py-1.5 px-4 shadow-inner">
+        <div class="max-w-7xl mx-auto flex items-center gap-3">
+            <!-- Badge -->
+            <div class="flex-shrink-0 bg-jpRed text-white font-extrabold uppercase px-2.5 py-0.5 rounded flex items-center space-x-1 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                <span>{{ 'BREAKING' if session.get('lang', 'hi') == 'en' else 'ताज़ा समाचार' }}</span>
+            </div>
+            
+            <!-- Scrolling Ticker -->
+            <div class="ticker-wrap flex-1 text-slate-200">
+                <div class="ticker-move flex items-center space-x-8">
+                    {% for bn in breaking_news_list %}
+                        <a href="{{ url_for('article_detail', slug=bn.slug) }}" class="inline-flex items-center space-x-2 hover:text-rose-400 transition-colors">
+                            <span class="text-rose-500 font-bold">•</span>
+                            <span class="font-medium">{{ bn.title_en if session.get('lang', 'hi') == 'en' else bn.title_hi }}</span>
+                            <span class="text-slate-400 text-[11px]">({{ bn.published_at.strftime('%H:%M') }})</span>
+                        </a>
+                    {% endfor %}
+                    <!-- Duplicate loop for smooth infinite scroll -->
+                    {% for bn in breaking_news_list %}
+                        <a href="{{ url_for('article_detail', slug=bn.slug) }}" class="inline-flex items-center space-x-2 hover:text-rose-400 transition-colors">
+                            <span class="text-rose-500 font-bold">•</span>
+                            <span class="font-medium">{{ bn.title_en if session.get('lang', 'hi') == 'en' else bn.title_hi }}</span>
+                            <span class="text-slate-400 text-[11px]">({{ bn.published_at.strftime('%H:%M') }})</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    <div class="max-w-7xl mx-auto px-4 mt-3 w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-3 mb-2 rounded-lg text-sm flex items-center justify-between shadow-sm {{ 'bg-emerald-100 text-emerald-800 border border-emerald-200' if category == 'success' else ('bg-rose-100 text-rose-800 border border-rose-200' if category in ['danger', 'error'] else 'bg-amber-100 text-amber-800 border border-amber-200') }}">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="{{ 'check-circle-2' if category == 'success' else ('alert-circle' if category in ['danger', 'error'] else 'alert-triangle') }}" class="w-4 h-4 flex-shrink-0"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-slate-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Body Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Mobile Slide-out Drawer -->
+    <div id="mobile-drawer-overlay" class="fixed inset-0 bg-slate-900/60 z-50 hidden backdrop-blur-sm"></div>
+    <div id="mobile-drawer" class="fixed top-0 right-0 w-80 max-w-[85%] h-full bg-jpNavy text-white z-50 transform translate-x-full transition-transform duration-300 ease-in-out p-5 flex flex-col justify-between overflow-y-auto">
+        <div>
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-jpRed flex items-center justify-center text-white">
+                        <i data-lucide="radio" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-lg font-bold">JAN<span class="text-jpRed">PULSE</span></span>
+                </div>
+                <button id="close-mobile-drawer" class="p-1 rounded-md text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Search -->
+            <form action="{{ url_for('search') }}" method="GET" class="mt-4 relative">
+                <input type="text" name="q" placeholder="{{ 'Search news...' if session.get('lang', 'hi') == 'en' else 'समाचार खोजें...' }}" 
+                       class="w-full bg-slate-900 border border-slate-700 text-white rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-jpRed">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+            </form>
+
+            <!-- Navigation Links -->
+            <div class="mt-6 flex flex-col space-y-1">
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    {{ 'Categories' if session.get('lang', 'hi') == 'en' else 'श्रेणियां' }}
+                </div>
+                <a href="{{ url_for('index') }}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-800">
+                    {{ 'Home' if session.get('lang', 'hi') == 'en' else 'मुख्य पृष्ठ' }}
+                </a>
+                {% for cat in nav_categories %}
+                    <a href="{{ url_for('category_view', slug=cat.slug) }}" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-800 flex items-center justify-between">
+                        <span>{{ cat.name_en if session.get('lang', 'hi') == 'en' else cat.name_hi }}</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-500"></i>
+                    </a>
+                {% endfor %}
+                <a href="{{ url_for('local_news_view') }}" class="px-3 py-2 rounded-md text-sm font-medium text-amber-400 hover:bg-slate-800 flex items-center space-x-2">
+                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    <span>{{ 'Local News Filter' if session.get('lang', 'hi') == 'en' else 'स्थानीय समाचार फ़िल्टर' }}</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile User Session Info -->
+        <div class="pt-6 border-t border-slate-800 mt-6">
+            {% if current_user %}
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-9 h-9 rounded-full bg-jpRed text-white flex items-center justify-center font-bold">
+                        {{ current_user.name[0] }}
+                    </div>
+                    <div>
+                        <div class="font-medium text-sm text-white">{{ current_user.name }}</div>
+                        <div class="text-xs text-slate-400 truncate">{{ current_user.email }}</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <a href="{{ url_for('user_saved') }}" class="p-2 rounded bg-slate-800 text-center text-slate-200 hover:bg-slate-700">
+                        {{ 'Saved News' if session.get('lang', 'hi') == 'en' else 'सहेजे गए' }}
+                    </a>
+                    <a href="{{ url_for('user_profile') }}" class="p-2 rounded bg-slate-800 text-center text-slate-200 hover:bg-slate-700">
+                        {{ 'Profile' if session.get('lang', 'hi') == 'en' else 'प्रोफाइल' }}
+                    </a>
+                    <a href="{{ url_for('auth_logout') }}" class="col-span-2 p-2 rounded bg-rose-900/40 text-center text-rose-300 hover:bg-rose-900/60">
+                        {{ 'Sign Out' if session.get('lang', 'hi') == 'en' else 'लॉग आउट' }}
+                    </a>
+                </div>
+            {% else %}
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <a href="{{ url_for('auth_login') }}" class="p-2.5 rounded bg-slate-800 text-center font-semibold text-white hover:bg-slate-700">
+                        {{ 'Log In' if session.get('lang', 'hi') == 'en' else 'लॉग इन' }}
+                    </a>
+                    <a href="{{ url_for('auth_register') }}" class="p-2.5 rounded bg-jpRed text-center font-semibold text-white hover:bg-jpRed-hover">
+                        {{ 'Register' if session.get('lang', 'hi') == 'en' else 'रजिस्टर' }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 5. Footer -->
+    <footer class="bg-jpNavy-dark text-slate-400 text-sm mt-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Col 1: About JanPulse -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-jpRed flex items-center justify-center text-white font-bold">
+                            <i data-lucide="radio" class="w-4 h-4"></i>
+                        </div>
+                        <span class="text-xl font-black text-white">JAN<span class="text-jpRed">PULSE</span></span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        {% if session.get('lang', 'hi') == 'en' %}
+                            JanPulse is India's premier bilingual digital journalism platform dedicated to credible, fearless, and grassroots reporting across national, international, and hyper-local affairs.
+                        {% else %}
+                            जनपल्स भारत का प्रमुख द्विभाषी डिजिटल पत्रकारिता मंच है, जो राष्ट्रीय, अंतर्राष्ट्रीय और स्थानीय मामलों पर निष्पक्ष, निर्भीक और सटीक रिपोर्टिंग के लिए समर्पित है।
+                        {% endif %}
+                    </p>
+                    <div class="flex space-x-3 pt-2">
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-jpRed transition-colors">
+                            <i data-lucide="twitter" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-jpRed transition-colors">
+                            <i data-lucide="facebook" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-jpRed transition-colors">
+                            <i data-lucide="youtube" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-jpRed transition-colors">
+                            <i data-lucide="instagram" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Col 2: Top Categories -->
+                <div>
+                    <h3 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+                        {{ 'News Categories' if session.get('lang', 'hi') == 'en' else 'समाचार श्रेणियां' }}
+                    </h3>
+                    <ul class="space-y-2 text-xs">
+                        {% for cat in nav_categories[:6] %}
+                            <li>
+                                <a href="{{ url_for('category_view', slug=cat.slug) }}" class="hover:text-white transition-colors">
+                                    {{ cat.name_en if session.get('lang', 'hi') == 'en' else cat.name_hi }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Col 3: More Sections & Local Editions -->
+                <div>
+                    <h3 class="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+                        {{ 'Local Editions' if session.get('lang', 'hi') == 'en' else 'स्थानीय संस्करण' }}
+                    </h3>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{{ url_for('local_news_view', state='Uttar Pradesh') }}" class="hover:text-white">Uttar Pradesh / उत्तर प्रदेश</a></li>
+                        <li><a href="{{ url_for('local_news_view', state='Maharashtra') }}" class="hover:text-white">Maharashtra / महाराष्ट्र</a></li>
+                        <li><a href="{{ url_for('local_news_view', state='Delhi') }}" class="hover:text-white">Delhi NCR / दिल्ली एनसीआर</a></li>
+                        <li><a href="{{ url_for('local_news_view', state='Bihar') }}" class="hover:text-white">Bihar / बिहार</a></li>
+                        <li><a href="{{ url_for('local_news_view', state='Karnataka') }}" class="hover:text-white">Karnataka / कर्नाटक</a></li>
+                        <li><a href="{{ url_for('local_news_view', state='Rajasthan') }}" class="hover:text-white">Rajasthan / राजस्थान</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Newsletter & Apps -->
+                <div class="space-y-3">
+                    <h3 class="text-white font-semibold text-sm uppercase tracking-wider">
+                        {{ 'Daily Digest' if session.get('lang', 'hi') == 'en' else 'दैनिक समाचार पत्र' }}
+                    </h3>
+                    <p class="text-xs text-slate-400">
+                        {{ 'Get top stories delivered directly to your inbox every morning.' if session.get('lang', 'hi') == 'en' else 'हर सुबह शीर्ष समाचार सीधे अपने ईमेल पर प्राप्त करें।' }}
+                    </p>
+                    <form onsubmit="event.preventDefault(); alert('Subscribed to JanPulse Daily Bulletin!');" class="flex">
+                        <input type="email" placeholder="Your email address" required 
+                               class="bg-slate-900 border border-slate-700 text-xs text-white px-3 py-2 rounded-l-md focus:outline-none focus:border-jpRed flex-1">
+                        <button type="submit" class="bg-jpRed hover:bg-jpRed-hover text-white text-xs font-semibold px-3 py-2 rounded-r-md transition-colors">
+                            {{ 'Join' if session.get('lang', 'hi') == 'en' else 'जुड़ें' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright & Editorial Compliance -->
+            <div class="mt-12 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                <div class="text-slate-400">
+                    &copy; 2026 JanPulse Media Network Ltd. All rights reserved.
+                </div>
+                <div class="flex items-center space-x-4 text-slate-400">
+                    <a href="#" class="hover:text-slate-300">Privacy Policy</a>
+                    <span>•</span>
+                    <a href="#" class="hover:text-slate-300">Terms of Service</a>
+                    <span>•</span>
+                    <a href="#" class="hover:text-slate-300">Code of Ethics</a>
+                    <span>•</span>
+                    <a href="#" class="hover:text-slate-300">Grievance Redressal</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Init Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

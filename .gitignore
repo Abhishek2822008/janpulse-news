@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local MySQL Data directory
+mysql_data/
+*.sock
+*.pid
+
+# Local environment & secrets
+.env
+.env.local
+
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# Scratch & temporary logs
+scratch/
+*.log
+
+# Static uploaded media (now stored on Cloudinary)
+static/uploads/*
+!static/uploads/.gitkeep
